@@ -2,35 +2,6 @@ import './main.css';
 import arrowIcon from './img/icon-arrow.svg';
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-// import 'leaflet/dist/leaflet.css';
-
-// import L from 'leaflet';
-
-
-class Tracker {
-  constructor() {
-      this.key = process.env.REACT_APP_GELOCATION_API_KEY;  
-      this.endpoint = 'https://geo.ipify.org/api/v1';
-  }
-
-  async getIpAddress(address) {
-      const query = `?apiKey=${this.key}&ipAddress=${address}`;
-
-      const response = await fetch(this.endpoint + query);
-      const data = await response.json();
-      
-      return data;
-  }
-
-  async getClientIpAddress() {
-      const query= `?apiKey=${this.key}`;
-
-      const response = await fetch(this.endpoint + query);
-      const data = await response.json();
-
-      return data;
-  }
-}
 
 
 function App() {
@@ -38,8 +9,8 @@ function App() {
   const [ipAddressData, setIpAddressData] = useState(null);
   const [shouldGetData, setShouldGetData] = useState(false);
 
-  async function getClientIpAddress() {
-    const query = `?apiKey=${process.env.REACT_APP_GELOCATION_API_KEY}`;
+  async function fetchIpAddress(ipAddress = '') {
+    const query = `?apiKey=${process.env.REACT_APP_GELOCATION_API_KEY}${ipAddress}`;
 
     const response = await fetch('https://geo.ipify.org/api/v1' + query);
     const data = await response.json();
@@ -49,7 +20,7 @@ function App() {
 
   useEffect(() => {
     const getIpAdressData = async () => {
-      const data = await getClientIpAddress();
+      const data = await fetchIpAddress();
 
       setIpAddressData(data);
     }    
@@ -57,12 +28,34 @@ function App() {
     getIpAdressData();
   }, []);
 
-  // * A text component for when you want to use the map instance
+  useEffect(() => {
+    const getSearchedIpAddressData = async () => {
+      const data = await fetchIpAddress(`&ipAddress=${ipAddressSearched}`);
+
+      setIpAddressData(data);
+    }
+
+    if (shouldGetData) {
+      getSearchedIpAddressData();
+
+      setShouldGetData(false);
+
+      setIpAddressSearched('');
+    }
+
+  }, [shouldGetData]);
+
+  // * A test child component for when you want to use the map instance
   // * Read more here: https://react-leaflet.js.org/docs/api-map/#usemap
   function MyComponent() {
     const myMap = useMap();
     
-    console.log(`Map center: ${myMap.getCenter()}`);
+    // * Simple log for testing the map instance. Leaving it here
+    // * for future testing
+    // console.log(`Map center: ${myMap.getCenter()}`);
+
+    if (!shouldGetData)
+      myMap.setView([ipAddressData.location.lat, ipAddressData.location.lng])
 
     return null;
   }
@@ -87,8 +80,9 @@ function App() {
                 <input
                   type="search"
                   name="searchInput"
+                  value={ ipAddressSearched }
                   id="searchInput"
-                  placeholder="Search for any IP address or domain"
+                  placeholder="Search for any IP address or domain e.g. 1.1.1.1"
                   className="header__search"
                   aria-label="Search for an IP address"
                   onChange={(e) => setIpAddressSearched(e.target.value.trim())}
@@ -158,7 +152,7 @@ function App() {
 
               <Marker position={[ipAddressData.location.lat, ipAddressData.location.lng]}>
                 <Popup>
-                  A pretty CSS3 popup. <br /> Easily customizable.
+                  Here's what you're looking for. <br /> Zoom in for a closer view.
                 </Popup>
               </Marker>
               <MyComponent />
