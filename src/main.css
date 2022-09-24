@@ -116,7 +116,7 @@ header .results {
   bottom: -55%;
   right: 0;
   left: 0;
-  z-index: 2;
+  z-index: 10000;
   background-color: white;
   -webkit-box-shadow: 0 10px 35px rgba(121, 120, 120, 0.4);
           box-shadow: 0 10px 35px rgba(121, 120, 120, 0.4);
@@ -146,6 +146,8 @@ header .results__result:not(.results__result--isp) {
   height: 80vh;
   z-index: 1;
 }
+
+.leaflet-container { height: 100%; }
 
 @media (max-width: 360px) {
   header .header__search {
